@@ -2,69 +2,18 @@
 <html lang="en-us">
   <head>
     <meta charset="utf-8">
-
-    <title>Make 10</title>
-
-    <style>
-      html {
-        font-family: sans-serif;
-        text-align: center;
-      }
-
-      body {
-        width: 50%;
-        max-width: 800px;
-        min-width: 480px;
-        margin: 0 auto;
-        font-size: 30px;
-      }
-
-     .message {
-        font-size: 16px;
-      }
-
-      button {
-        font-size: 30px;
-        padding: 1px 15px;
-        cursor: pointer;
-      }
-
-      .displayLines {
-        font-size: 30px;
-      }
-
-      input[type='expression'] {
-        font-size: 30px;
-        padding: 15px;
-        width: 200px;
-      }
-
-      .lastResult {
-        color: white;
-        padding: 3px;
-      }
-    </style>
+    <title>Make Ten</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="styles/style.css" rel="stylesheet" />
   </head>
-
+  
   <body>
-    <h1>Make 10</h1>
-
-    <p class="number">2715</p>
-
-    <div class="displayLines">
-        <p class="first"></p>
-        <p class="second"></p>
-        <p class="third"></p>
-        <p class="fourth"></p>
-        <p class="fifth"></p>
-        <p class="sixth"></p>
-    </div>
-
-    <input id='input' type='expression' placeholder="">
-
-
-      <p class="message">asdf</p>
-
+    <h1>Make Ten</h1>
+    <div id="number">2715</div>
+    <div class="foundSolution">17-5-2</div>
+    <input id='input' type='expression' autocomplete='off' placeholder=""></input>
+    <div class="hiddenSolution">&nbsp;</div>
+    <p class="message">msg</p>
    
     <script src="maincopy.js" defer></script>
   </body>

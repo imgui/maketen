@@ -1,6 +1,7 @@
-// 715 combinations of digits (according to Tina (and eventually, me too))
-// Interesting cases: 8121, 8253, 1010, 8111TODO+*bug, 1099(has 22 solutions), 8674, 2869, 5264
 
+
+// 715 combinations of digits (according to Tina (and eventually, me too))
+// Interesting cases: 8121, 8253, 1010, 8111TODO+*bug, something to do with adding *1 on end?, 1099(has 22 solutions), 8674!, 2869, 5264, 8427, 6032!! (60/2/3)
 // Take a four digit numstring, return an array of all solution strings. 
 // ie 2810 -> {8+2*1+0, SCExponentZero, 
 // Note that solutions are ordered, and there are special cases.
@@ -37,7 +38,7 @@ function findSolutions(numString) {
 //    (most importantly the rules are consistent, if somewhat arbitrary)
 //  #Factors are consistently ordered ascending by js sort() (divisors at end)
 //  #Sums are consistently ordered descending by js sort()
-//  SC: '/1' or '*1' becomes '*1' and always associates with the last term. ('1991')
+//  TODO buggy SC: '/1' or '*1' becomes '*1' and always associates with the last term. ('1991')
 //  #SC: -0 becomes +0
 //  SC: 1^exp always uses the larger number as the exp (ie 1^54, not 1^45)
 //  SC: num^0 always uses the larger number as the exp (ie 54^0, not 45^0)
