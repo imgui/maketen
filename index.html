@@ -9,12 +9,13 @@
   
   <body>
     <h1>Make Ten</h1>
-    <div id="number">2715</div>
-    <div class="foundSolution">17-5-2</div>
-    <input id='input' type='expression' autocomplete='off' placeholder=""></input>
-    <div class="hiddenSolution">&nbsp;</div>
-    <p class="message">msg</p>
+    <div id="number">&nbsp;</div>
+
+    <div id="dynamicColumn">
+      <input id='input' autocomplete='off' onkeypress="solutionEntered(event)"></input>
+    </div>
+    <p id="message">&nbsp;</p>
    
-    <script src="maincopy.js" defer></script>
+    <script src="main.js" defer></script>
   </body>
 </html>

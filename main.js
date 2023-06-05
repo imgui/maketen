@@ -1,196 +1,188 @@
-let numString = '2715';
-let guessCount = 0;
-let inputs = '';
-let display = [document.querySelector('.first'),
-document.querySelector('.second'),
-document.querySelector('.third'),
-document.querySelector('.fourth'),
-document.querySelector('.fifth'),
-document.querySelector('.sixth')]
-initialise();
+let numberDisplay = document.getElementById('number');
+let inputField = document.getElementById('input');
+let messageField = document.getElementById('message');
+let dynamicColumn = document.getElementById('dynamicColumn');
 
-function initialise() {
-        const displayLines = document.querySelectorAll('.displayLines p');
-    for (const line of displayLines) {
-        line.style.backgroundColor = '#ededed';
-    }
-    update();
+let number = '';
+let remainingSolutions = [];
+let correctGuesses = [];
+
+while (remainingSolutions.length == 0) {
+    number = String(Math.floor(Math.random()*10000)).padStart(4,0);
+    remainingSolutions = findSolutions(number);
 }
 
-function addOperator(op) {
-    if (inputs.charAt(0) === '~') {
-        inputs = op;
-        update();
+numberDisplay.textContent = number;
+inputField.focus();
+inputField.add
+
+function solutionEntered(event) {
+    if (event.keyCode !== 13) { messageField.textContent = ''; return; } // 'Enter' key
+    let guess = orderExpression(inputField.value);
+    let orderedCorrectGuesses = correctGuesses.map((ele) => orderExpression(ele));
+    let result = 0;
+
+    //TODO validate guess
+    try {
+        result = eval(guess);
+    } catch (error) {
+        messageField.textContent = 'Illegal guess';
         return;
     }
-    inputs += op;
-    update();
-}
 
-function guess() {
-    let str = formatExpr(inputs);
-    const result = eval(str);
-    display[guessCount].textContent = display[guessCount].textContent + ` = ${result}`;
-    if (result === 10) {
-        display[guessCount].style.backgroundColor = 'lightGreen';
-    }
+    if (result === 10 && orderedCorrectGuesses.includes(guess)) {
+        messageField.textContent = 'Too similar to a previous guess';
+    } else if (result !== 10) {
+        messageField.textContent = 'Does not make ten';
+    } else if (result === 10 && remainingSolutions.includes(guess)) {
+        // Remove from remaining
+        remainingSolutions = remainingSolutions.filter(function (value, index, arr) {
+            return value !== guess;
+        });
+        correctGuesses.push(inputField.value.replaceAll(' ', ''));
 
-    guessCount++;
-    inputs = '~';
-
-    update();
-    display[guessCount].style.backgroundColor = 'lightGray';
-}
-
-function update() {
-    display[guessCount].textContent = inputs;
-    display[guessCount].style.backgroundColor = 'lightGray';
-
-    const qmarkCount = (inputs.match(/\?/g) || []).length;
-    if (qmarkCount >= 4) {
-        questionButt.disabled = true;
-
-        let exception = false;
-        try {
-            let expr = formatExpr(inputs);
-            const result = eval(expr);
+        // Remove dynamic elements
+        while(dynamicColumn.hasChildNodes()) {
+            dynamicColumn.removeChild(dynamicColumn.firstChild);
         }
-        catch {
-            exception = true;
+
+        // Add correct guess/es
+        for (let i = 0; i < correctGuesses.length; i++) {
+            let ele = document.createElement('div');
+            ele.setAttribute('class', 'foundSolution');
+            ele.textContent = correctGuesses[i];
+            dynamicColumn.appendChild(ele);
         }
-        if (exception) {
-            equalsButt.disabled = true;
+
+        // Add remaining guesses
+        if (remainingSolutions.length === 0) {
+            messageField.textContent = 'All solutions found!';
         } else {
-            equalsButt.disabled = false;
+            // Add field
+            let ele = document.createElement('input');
+            ele.setAttribute('id', 'input');
+            ele.setAttribute('autocomplete', 'off');
+            ele.setAttribute('onkeypress', 'solutionEntered(event)');
+            dynamicColumn.appendChild(ele);
+            inputField = document.getElementById('input');
+            inputField.focus();
+
+            for (let i = 0; i < remainingSolutions.length-1; i++) {
+                let ele = document.createElement('div');
+                ele.setAttribute('class', 'hiddenSolution');
+                dynamicColumn.appendChild(ele);
+            }
         }
-        
     } else {
-        questionButt.disabled = false;
-        equalsButt.disabled = true;
+        console.log('Guess was correct but not anticipated by the program. Fix it!');
     }
 
-    if (inputs.length == 0) {
-        backButt.disabled = true;
-    } else {
-        backButt.disabled = false;
-    }
 }
 
-// Given a numString, returns array of all correct guesses
-// No prefix, only three 'slots'
-function correctGuesses(numString) {
+
+
+// 715 combinations of digits (according to Tina (and eventually, me too))
+// Interesting cases: 8121, 8253, 1010, 8111TODO+*bug, something to do with adding *1 on end?, 1099(has 22 solutions), 8674!, 2869, 5264, 8427, 6032!! (60/2/3) 2389 2368, 2345. 2245 2255
+// Take a four digit numstring, return an array of all solution strings.
+// SC: No consecutive exponents allowed. They are never fun. 
+// ie 2810 -> {8+2*1+0, SCExponentZero, 
+// Note that solutions are ordered, and there are special cases.
+function findSolutions(numString) {
     const operators = ['+', '-', '*', '/', '**', ''];
     const permutations = findPerms(numString);
     let arr = [];
 
-    // For each permutation
-    for (let i = 0; i < permutations.length; i++) {
-        let perm = permutations[i];
-        operationCombos = operators.length**3;
+    const operationCombos = operators.length**3;
+    const numberCombos = 10**numString.length;
 
+    for (let i = 0; i < permutations.length; i++) {
+        const perm = permutations[i];
         for (let ii = 0; ii < operationCombos; ii++) {
             let len = operators.length;
             let firstOp = operators[~~(ii%len)];
             let secondOp = operators[~~((ii/len)%len)];
             let thirdOp = operators[~~((ii/(len**2))%len)];
 
-            let expression = perm[0] + firstOp + 
-                             perm[1] + secondOp +
-                             perm[2] + thirdOp +
-                             perm[3];
+            const expression = perm[0] + firstOp + perm[1] + secondOp + perm[2] + thirdOp + perm[3];
 
             leadingZeros = /0\d/.test(expression);
-            if (eval(expression) === 10 && !leadingZeros) {
-                arr.push(expression);
+            consecExponents = /\*\*\d\*\*/.test(expression);
+            if (eval(expression) === 10 && !leadingZeros && !consecExponents) {
+                arr.push(orderExpression(expression));
             }
-        }
-    }
-    arr = [...new Set(arr)]; //remove duplicates
-
-    // Convert strings to sum of products arrays, discard +'s, evaluate elements
-    // that result in 0.
-    sops = [];
-    for (let i = 0; i < arr.length; i++) {
-        str = arr[i];
-        sop = str.replaceAll('-', '+-').split('+');
-
-        for (let ii = 0; ii < sop.length; ii++) {
-            // Parse the str, because eg. -0**1 will give errors
-            validStr = sop[ii];
-            if (validStr[0] === '-' && validStr.includes('**')) {
-                validStr = validStr.slice(1);
-            }
-
-            if (eval(validStr) === 0) {
-                sop[ii] = '0';
-            }
-        }
-        sops.push(sop);
+        }      
     }
 
-    // Group permutations into sub arrays
-    finalArr = [];
-    for (let i = 0; i < sops.length; i++) {
-        const sop = sops[i];
-        if (finalArr.length === 0) {
-            let allSops = sopPermute(sop);
-            if(!arraysEqual(allSops, sop)) {
-                console.log(allSops, sop);
-                for (let thisSop in allSops) {
-                    finalArr.push(permute(thisSop));
-                }
-            } else {
-                finalArr.push(permute(sop));
-            }
-        } else {
-            // Check if it does not exist in the subarrays
-            exists = false;
-            for (let ii = 0; ii < finalArr.length; ii++) {
-                const subArr = finalArr[ii];
-                for (let iii = 0; iii < subArr.length; iii++) {
-                    const existingSop = subArr[iii];
-
-                    if (arraysEqual(sop, existingSop)) {
-                        exists = true;
-                        break
-                    }
-                }
-                if (exists === true) {
-                    break;
-                }
-            }
-            if (exists === false) {
-                let allSops = sopPermute(sop);
-                if(!arraysEqual(allSops, sop)) {
-                    console.log(allSops, sop);
-                    for (let thisSop in allSops) {
-                        finalArr.push(permute(thisSop));
-                    }
-                } else {
-                finalArr.push(permute(sop));
-                }
-            }
-        }
-    }
-
-    return finalArr;;
+    arr = [... new Set(arr)]; // remove duplicates
+    return arr;
 }
-// https://stackoverflow.com/questions/3115982/how-to-check-if-two-arrays-are-equal-with-javascript
-function arraysEqual(a, b) {
-    if (a === b) return true;
-    if (a == null || b == null) return false;
-    if (a.length !== b.length) return false;
-  
-    // If you don't care about the order of the elements inside
-    // the array, you should sort both arrays here.
-    // Please note that calling sort on an array will modify that array.
-    // you might want to clone your array first.
-  
-    for (var i = 0; i < a.length; ++i) {
-      if (a[i] !== b[i]) return false;
+
+// Takes an expression string, applies the following rules:
+//    (most importantly the rules are consistent, if somewhat arbitrary)
+//  #Factors are consistently ordered ascending by js sort() (divisors at end)
+//  #Sums are consistently ordered descending by js sort()
+//  TODO buggy SC: '/1' or '*1' becomes '*1' and always associates with the last term. ('1991')
+//  #SC: -0 becomes +0
+//  SC: 1^exp always uses the larger number as the exp (ie 1^54, not 1^45)
+//  SC: num^0 always uses the larger number as the exp (ie 54^0, not 45^0)
+//  SC: **1 goes on end
+function orderExpression(expression) {
+    let SCOneFactors = '';
+    expression = expression.replaceAll(' ', '');
+    let sums = (expression[0] + expression.slice(1).replaceAll('-', '+-')).split('+');
+    //console.log('sums:' + sums);
+
+    for (let i = 0; i < sums.length; i++) {
+        const isOneDigit = sums[i].length == 1 || (sums[i][0] === '-' && sums[i].length === 2);
+        if (isOneDigit) { sums[i] = deSignZero(sums[i]); continue; }
+        
+        let minusSign = null;
+        if (sums[i][0] === '-') {
+            sums[i] = sums[i].slice(1);
+            minusSign = '-';
+        }
+
+        let factors = sums[i].replaceAll('**', '^').replaceAll('/', '*/').split('*');
+
+        //console.log(factors);
+        // Seperate divisors, remove '/1's
+        let divisors = [];
+        for (let ii = factors.length-1; ii >= 0; ii--) {
+            if (factors[ii][0] == '/') {
+                const divisor = factors.splice(ii, 1); //Remove divisor from arr
+                divisors.push(divisor);
+                if (divisor == '/1') { 
+                    SCOneFactors += '*1';
+                    divisors.pop();
+                    //console.log('Expression ' + expression + 'Divisors ' + divisors);
+                    //console.log('hiihi');
+                }
+            }
+        }
+        divisors = divisors.sort();
+        //console.log('div:' + divisors);
+
+        factors.sort();
+        //console.log('factors: ' + factors);
+        // Remove '*1's
+        for (let ii = factors.length-1; ii >= 0; ii--) {
+            if (factors[ii] == '1') {
+                 factors.splice(ii, 1); 
+                 SCOneFactors += '*1';
+                 //console.log('sc: ' + SCOneFactors);
+            }
+        }
+        sums[i] = factors.concat(divisors);
+        sums[i] = sums[i].join('*').replaceAll('*/', '/');
+        
+        if (minusSign !== null) { sums[i] = '-' + sums[i]; }
+        sums[i] = deSignZero(sums[i]);
     }
-    return true;
-  }
+    //console.log(sums.sort());
+    return sums.sort().reverse().join('+').replaceAll('^', '**').replaceAll('+-', '-') + SCOneFactors;
+
+    function deSignZero (str) { return str.replaceAll('-0', '0');}
+}
 
 // Given a numbstring, return array of all permutations)
 //https://medium.com/swlh/step-by-step-guide-to-solving-string-permutation-using-recursion-in-javascript-a11d098d5b83
@@ -210,85 +202,43 @@ function findPerms(str) {
     return (result);
   }
 
-  // Takes array, break each product into array of products (ignoring divisions
-  // and exponents). Permute each one, return an array of all the valid perms.
-  // ie 8**1*2 - 6, 2*8**1 - 6 || 2*4/4+8 , 4/4*2+8 || 7+3*1*1, 7+1*3*1, 7+1*1*3
-  function sopPermute(sop) {
-    let result = [];
-    for (let i = 0; i < sop.length; i++) {
-        let products = sop[i];
-        let productsArr = products.replaceAll('**','^').split('*'); // ie [8^1, 2]
-        for (let ii = 0; ii < productsArr.length; ii++) {
-            productsArr[ii] = productsArr[ii].replaceAll('^', '**');
-        } // ie [8**1, 2];
+  /** Function that count occurrences of a substring in a string;
+ * @param {String} string               The string
+ * @param {String} subString            The sub string to search for
+ * @param {Boolean} [allowOverlapping]  Optional. (Default:false)
+ *
+ * @author Vitim.us https://gist.github.com/victornpb/7736865
+ * @see Unit Test https://jsfiddle.net/Victornpb/5axuh96u/
+ * @see https://stackoverflow.com/a/7924240/938822
+ */
+function occurrences(string, subString, allowOverlapping) {
 
-        let newProducts = permute(productsArr);
-        for (let ii = 0; ii < newProducts.length; ii++) {
-            if (newProducts.length === 1) {
-                break;
-            }
-            // Return to string
-            let productStr = newProducts[ii].join('*'); // ie 8**1*2
-            // Generate a new sop
-            let newSop = [...sop];
-            newSop[i] = productStr;
-            //console.log('newSop =' + newSop, 'ii = ' + ii, ' productStr = ' + productStr);
-            result.push(newSop);
-            //console.log(result);
-        }
+    string += "";
+    subString += "";
+    if (subString.length <= 0) return (string.length + 1);
+
+    var n = 0,
+        pos = 0,
+        step = allowOverlapping ? 1 : subString.length;
+
+    while (true) {
+        pos = string.indexOf(subString, pos);
+        if (pos >= 0) {
+            ++n;
+            pos += step;
+        } else break;
     }
-    if (result.length === 0) {
-        return sop;
+    return n;
+}
+
+  function check () {
+    let arr = [];
+    for (let i = 0; i < 10000; i++) {
+        let str = String(i).padStart(4,0);
+        str = str.split('');
+        str = String(str.sort());
+        arr.push(str);
     }
-    return result;
+    arr = [... new Set(arr)];
+    return arr;
   }
-
-  //https://medium.com/weekly-webtips/step-by-step-guide-to-array-permutation-using-recursion-in-javascript-4e76188b88ff
-  function permute(nums) {
-    let result = [];
-  if (nums.length === 0) return [];
-    if (nums.length === 1) return [nums];
-  for (let i = 0; i < nums.length; i++) {
-      const currentNum = nums[i];
-      const remainingNums = nums.slice(0, i).concat(nums.slice(i + 1));
-      const remainingNumsPermuted = permute(remainingNums);
-    for (let j = 0; j < remainingNumsPermuted.length; j++) {
-        const permutedArray = [currentNum].concat(remainingNumsPermuted[j]);
-        result.push(permutedArray);
-      }
-    }
-    return result;
-  }
-    
-
-function formatExpr(str) {
-    // Add asterisks between ?? and )(
-
-    while (str.indexOf('\?\?') != -1) {
-       str = strSplice(str, str.indexOf('\?\?') + 1, '*');
-    }
-
-    while(str.indexOf("\)\(") != -1) {
-        str = strSplice(str, str.indexOf('\)\(') + 1, '*');
-    }
-
-    for (let i = 0; i < 4; i++) {
-        str = str.replace('?', numString[i]);
-    }
-    return str;
-}
-
-function strSplice(str, idx, graft) {
-    return str.slice(0, idx) + graft + str.slice(idx, str.length);
-}
-
-function countGuesses() {
-let counter = 0;
-for (let i = 1000; i <= 9999; i++) {
-    if (correctGuesses(String(i)).length >= 1) {
-        counter++;
-        console.log(counter);
-    }
-}
-console.log('done');
-}

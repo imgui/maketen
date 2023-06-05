@@ -1,9 +1,16 @@
+/* TODO: make ten and number not scroll */
+
 html {
     font-family: sans-serif;
     width: 200px;
     margin-left: auto;
     margin-right: auto;
     text-align: center;
+}
+
+h1 {
+    margin-top: 0px;
+    margin-bottom: 0px;
 }
 
 #number {
@@ -15,6 +22,8 @@ html {
     line-height: 50px;
     font-size: 40px;
     background-color: hsl(84, 50%, 85%);
+
+    margin-top: 10px;
 }
 
 input {
@@ -22,13 +31,18 @@ input {
     box-sizing:border-box;
     width: 100%;
 
-    font-size: 40px;
+
     height: 50px;
+    font-size: 40px;
     background-color: hsl(0, 0%, 90%);
+
+    margin-top: 10px;
 }
 
 .hiddenSolution {
-    user-select: none;
     height: 50px;
+    user-select: none;
     background-color: hsl(0, 0%, 90%);
+
+    margin-top: 10px;
 }
