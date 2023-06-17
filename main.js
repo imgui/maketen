@@ -16,6 +16,12 @@ numberDisplay.textContent = number;
 inputField.focus();
 inputField.add
 
+inputField.onblur = function () {
+    setTimeout(function () {
+        inputField.focus();
+    })
+};
+
 function solutionEntered(event) {
     if (event.keyCode !== 13) { messageField.textContent = '\xA0'; return; } // 'Enter' key
     let guess = orderExpression(inputField.value);
@@ -66,6 +72,11 @@ function solutionEntered(event) {
             dynamicColumn.appendChild(ele);
             inputField = document.getElementById('input');
             inputField.focus();
+            inputField.onblur = function () {
+                setTimeout(function () {
+                    inputField.focus();
+                })
+            };
 
             for (let i = 0; i < remainingSolutions.length-1; i++) {
                 let ele = document.createElement('div');
@@ -105,8 +116,6 @@ function revealClicked(event) {
         ele.textContent = remainingSolutions[i].replaceAll('**', '^');
         dynamicColumn.appendChild(ele);
     }
-
-
 }
 
 
@@ -180,9 +189,10 @@ function orderExpression(expression) {
             minusSign = '-';
         }
 
-        // SC 0/4 -> 0*4
-        if (/\D0\//.test(' ' + terms[i] + ' ')) { // if there is a '0/something'
+        // SC 0/4 or 0^4 -> 0*4
+        if (/\D0(\/|\*\*)/.test(' ' + terms[i] + ' ')) { // if there is a '0/something'
             terms[i] = terms[i].replaceAll('/', '*');
+            terms[i] = terms[i].replaceAll('**', '*');
         }
 
         let factors = terms[i].replaceAll('**', '^').replaceAll('/', '*/').split('*');
