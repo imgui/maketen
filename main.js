@@ -2,6 +2,7 @@ let numberDisplay = document.getElementById('number');
 let inputField = document.getElementById('input');
 let messageField = document.getElementById('message');
 let dynamicColumn = document.getElementById('dynamicColumn');
+let giveUpButton = document.getElementById('giveUpButton');
 
 let number = '';
 let remainingSolutions = [];
@@ -14,6 +15,13 @@ while (remainingSolutions.length == 0) {
 
 numberDisplay.textContent = number;
 inputField.focus();
+setTimeout(function(){
+    const gameWon = remainingSolutions.length === 0;
+    if (!gameWon) { // If game not won
+        giveUpButton.hidden = false; 
+    }
+}, 5*60*1000); // (ms) 5 minutes
+
 inputField.add
 
 inputField.onblur = function () {
@@ -23,7 +31,7 @@ inputField.onblur = function () {
 };
 
 function solutionEntered(event) {
-    if (event.keyCode !== 13) { messageField.textContent = '\xA0'; return; } // 'Enter' key
+    if (event.keyCode !== (13 ||  8)) { messageField.textContent = '\xA0'; return; } // 'Enter' or 'Backspace' key
     let guess = orderExpression(inputField.value);
     let orderedCorrectGuesses = correctGuesses.map((ele) => orderExpression(ele));
     let result = 0;
@@ -83,20 +91,13 @@ function solutionEntered(event) {
                 ele.setAttribute('class', 'hiddenSolution');
                 dynamicColumn.appendChild(ele);
             }
-
-            // Add reveal button
-            ele = document.createElement('button');
-            ele.setAttribute('id', 'revealButton');
-            ele.setAttribute('onclick', 'revealClicked(event)')
-            ele.textContent = 'Reveal';
-            dynamicColumn.appendChild(ele);
         }
     } else {
         messageField.textContent = 'Illegal guess';
     }
 }
 
-function revealClicked(event) {
+function giveUp(event) {
     // Remove dynamic elements
     while(dynamicColumn.hasChildNodes()) {
         dynamicColumn.removeChild(dynamicColumn.firstChild);
@@ -116,11 +117,13 @@ function revealClicked(event) {
         ele.textContent = remainingSolutions[i].replaceAll('**', '^');
         dynamicColumn.appendChild(ele);
     }
+
+    giveUpButton.hidden = true;
 }
 
 
 // 715 combinations of digits (according to Tina (and eventually, me too))
-// Interesting cases: 8121, 8253, 1010, 8111, 1099(has 22 solutions), 8674!, 2869, 5264, 8427, 6032!! (60/2/3) 2389 2368, 2345. 2245 2255 0248 5132 3456 3147
+// Interesting cases: 8121, 8253, 1010, 8111, 1099(has 22 solutions), 8674!, 2869, 5264, 8427, 6032!!(60/2/3) 6132 2389 2368, 2345. 2245 2255 0248 5132 3456 3147
 // Take a four digit numstring, return an array of all solution strings.
 // SC: No consecutive exponents allowed. They are never fun. 
 // ie 2810 -> {8+2*1+0, SCExponentZero, 
@@ -189,13 +192,15 @@ function orderExpression(expression) {
             minusSign = '-';
         }
 
+        terms[i] = terms[i].replaceAll('**', '^');
+
         // SC 0/4 or 0^4 -> 0*4
-        if (/\D0(\/|\*\*)/.test(' ' + terms[i] + ' ')) { // if there is a '0/something'
+        if (/\D0(\/|\^)/.test(' ' + terms[i] + ' ')) { // if there is a '0/something'
             terms[i] = terms[i].replaceAll('/', '*');
-            terms[i] = terms[i].replaceAll('**', '*');
+            terms[i] = terms[i].replaceAll('^', '*');
         }
 
-        let factors = terms[i].replaceAll('**', '^').replaceAll('/', '*/').split('*');
+        let factors = terms[i].replaceAll('/', '*/').split('*');
 
         // Seperate divisors (factors: [2, /6] -> factors: [2] divisors [6]) 
         let divisors = [];

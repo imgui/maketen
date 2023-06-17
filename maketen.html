@@ -10,10 +10,10 @@
   <body>
     <h1>Make Ten</h1>
     <div id="number">&nbsp;</div>
+    <button id='giveUpButton' onclick='giveUp(event)' hidden='true'>Give up</button>
     <p id="message">&nbsp;</p>
     <div id="dynamicColumn">
       <input id='input' autocomplete='off' onkeypress="solutionEntered(event)"></input>
-      <button id='revealButton' onclick='revealClicked(event)'>Reveal</button>
     </div>
     
    
