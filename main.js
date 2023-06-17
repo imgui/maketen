@@ -17,7 +17,7 @@ inputField.focus();
 inputField.add
 
 function solutionEntered(event) {
-    if (event.keyCode !== 13) { messageField.textContent = ''; return; } // 'Enter' key
+    if (event.keyCode !== 13) { messageField.textContent = '\xA0'; return; } // 'Enter' key
     let guess = orderExpression(inputField.value);
     let orderedCorrectGuesses = correctGuesses.map((ele) => orderExpression(ele));
     let result = 0;
@@ -72,17 +72,46 @@ function solutionEntered(event) {
                 ele.setAttribute('class', 'hiddenSolution');
                 dynamicColumn.appendChild(ele);
             }
+
+            // Add reveal button
+            ele = document.createElement('button');
+            ele.setAttribute('id', 'revealButton');
+            ele.setAttribute('onclick', 'revealClicked(event)')
+            ele.textContent = 'Reveal';
+            dynamicColumn.appendChild(ele);
         }
     } else {
-        console.log('Guess was correct but not anticipated by the program. Fix it!');
+        messageField.textContent = 'Illegal guess';
     }
+}
+
+function revealClicked(event) {
+    // Remove dynamic elements
+    while(dynamicColumn.hasChildNodes()) {
+        dynamicColumn.removeChild(dynamicColumn.firstChild);
+    }
+    // Add correct guess/es
+    for (let i = 0; i < correctGuesses.length; i++) {
+        let ele = document.createElement('div');
+        ele.setAttribute('class', 'foundSolution');
+        ele.textContent = correctGuesses[i];
+        dynamicColumn.appendChild(ele);
+    }
+
+    // Add revealed solutions in pink
+    for (let i = 0; i < remainingSolutions.length; i++) {
+        let ele = document.createElement('div');
+        ele.setAttribute('class', 'revealedSolution');
+        ele.textContent = remainingSolutions[i].replaceAll('**', '^');
+        dynamicColumn.appendChild(ele);
+    }
+
 
 }
 
 
-
 // 715 combinations of digits (according to Tina (and eventually, me too))
-// Interesting cases: 8121, 8253, 1010, 8111TODO+*bug, something to do with adding *1 on end?, 1099(has 22 solutions), 8674!, 2869, 5264, 8427, 6032!! (60/2/3) 2389 2368, 2345. 2245 2255
+// Interesting cases: 8121, 8253, 1010, 8111, 1099(has 22 solutions), 8674!, 2869, 5264, 8427, 6032!! (60/2/3) 2389 2368, 2345. 2245 2255 0248 5132 3456 3147
 // Take a four digit numstring, return an array of all solution strings.
 // SC: No consecutive exponents allowed. They are never fun. 
 // ie 2810 -> {8+2*1+0, SCExponentZero, 
@@ -108,6 +137,9 @@ function findSolutions(numString) {
             leadingZeros = /0\d/.test(expression);
             consecExponents = /\*\*\d\*\*/.test(expression);
             if (eval(expression) === 10 && !leadingZeros && !consecExponents) {
+                if (orderExpression(expression) == '9+19*1') {
+                    console.log('expression 9+19*1: ' + expression);
+                }
                 arr.push(orderExpression(expression));
             }
         }      
@@ -119,69 +151,128 @@ function findSolutions(numString) {
 
 // Takes an expression string, applies the following rules:
 //    (most importantly the rules are consistent, if somewhat arbitrary)
-//  #Factors are consistently ordered ascending by js sort() (divisors at end)
-//  #Sums are consistently ordered descending by js sort()
-//  TODO buggy SC: '/1' or '*1' becomes '*1' and always associates with the last term. ('1991')
-//  #SC: -0 becomes +0
+//  Factors are consistently ordered ascending by js sort() (divisors at end)
+//  Sums are consistently ordered descending by js sort()
+//  SC: '/1' or '*1' or ^1 becomes '*1' and always associates with the last term. ('1991')
+//  SC: -0 becomes +0
 //  SC: 1^exp always uses the larger number as the exp (ie 1^54, not 1^45)
 //  SC: num^0 always uses the larger number as the exp (ie 54^0, not 45^0)
-//  SC: **1 goes on end
-function orderExpression(expression) {
-    let SCOneFactors = '';
-    expression = expression.replaceAll(' ', '');
-    let sums = (expression[0] + expression.slice(1).replaceAll('-', '+-')).split('+');
-    //console.log('sums:' + sums);
+//  SC: The term 0/4 -> 0*4
 
-    for (let i = 0; i < sums.length; i++) {
-        const isOneDigit = sums[i].length == 1 || (sums[i][0] === '-' && sums[i].length === 2);
-        if (isOneDigit) { sums[i] = deSignZero(sums[i]); continue; }
+function orderExpression(expression) {
+    let OneFactors = []; // for special cases resolving to 1 to be added at end
+    let emptyTerm = false; // when removal of OneFactors takes out an entire term
+
+    expression = expression.replaceAll(' ', '');
+    let terms = (expression[0] + expression.slice(1).replaceAll('-', '+-')).split('+');
+    for (let i = 0; i < terms.length; i++) {
+        const isOneDigit = terms[i].length == 1 || (terms[i][0] === '-' && terms[i].length === 2);
+        if (isOneDigit) { 
+            if (terms[i] == '-0') { 
+                terms[i] = '0';
+            } 
+            continue; 
+        }
         
         let minusSign = null;
-        if (sums[i][0] === '-') {
-            sums[i] = sums[i].slice(1);
+        if (terms[i][0] === '-') {
+            terms[i] = terms[i].slice(1);
             minusSign = '-';
         }
 
-        let factors = sums[i].replaceAll('**', '^').replaceAll('/', '*/').split('*');
+        // SC 0/4 -> 0*4
+        if (/\D0\//.test(' ' + terms[i] + ' ')) { // if there is a '0/something'
+            terms[i] = terms[i].replaceAll('/', '*');
+        }
 
-        //console.log(factors);
-        // Seperate divisors, remove '/1's
+        let factors = terms[i].replaceAll('**', '^').replaceAll('/', '*/').split('*');
+
+        // Seperate divisors (factors: [2, /6] -> factors: [2] divisors [6]) 
         let divisors = [];
         for (let ii = factors.length-1; ii >= 0; ii--) {
             if (factors[ii][0] == '/') {
-                const divisor = factors.splice(ii, 1); //Remove divisor from arr
+                let divisor = String(factors.splice(ii, 1)); //Remove divisor from arr
+                divisor = divisor.slice(1);
+                if (divisor == '1') { 
+                    OneFactors.push(divisor); // add to OneFactors
+                } else if (divisor.includes('^0') || divisor.includes('1^')) {
+                    divisor = orderExponent(divisor);
+                    OneFactors.push(divisor);
+                } else if (/\^1\D/.test(divisor + ' ')) { // All powers of 1 become *1\
+                    divisor = divisor.replace('^1', ''); 
+                    OneFactors.push('1');
+                    divisors.push(divisor);
+                } else if (divisor.includes('^')) {
+                    divisor = orderExponent(divisor);
+                    divisors.push(divisor);
+                } else {
                 divisors.push(divisor);
-                if (divisor == '/1') { 
-                    SCOneFactors += '*1';
-                    divisors.pop();
-                    //console.log('Expression ' + expression + 'Divisors ' + divisors);
-                    //console.log('hiihi');
                 }
             }
         }
         divisors = divisors.sort();
-        //console.log('div:' + divisors);
+        
+        // Remove factors of one 
 
-        factors.sort();
-        //console.log('factors: ' + factors);
-        // Remove '*1's
+        let initialFactorsLength = factors.length;
         for (let ii = factors.length-1; ii >= 0; ii--) {
-            if (factors[ii] == '1') {
-                 factors.splice(ii, 1); 
-                 SCOneFactors += '*1';
-                 //console.log('sc: ' + SCOneFactors);
+            if (initialFactorsLength > 1 && factors[ii] == '1') {  
+                 OneFactors.push(factors.splice(ii, 1));
+                 if (factors.length == 0) { emptyTerm = true;}
+            } else if (initialFactorsLength > 1 && 
+                (factors[ii].includes('^0') || factors[ii].includes('1^'))) {
+                let expFactorOne = factors.splice(ii, 1);
+                if (factors.length == 0) { emptyTerm = true;}
+                OneFactors.push(orderExponent(expFactorOne));
+            } else if (/\^1\D/.test(factors[ii] + ' ')) { // Contains ^1 (not ie ^15)
+                factors[ii] = factors[ii].replace('^1', '');
+                OneFactors.push('1');
+            } else if (factors[ii].includes('^')) {
+                factors[ii] = orderExponent(factors[ii]);
             }
         }
-        sums[i] = factors.concat(divisors);
-        sums[i] = sums[i].join('*').replaceAll('*/', '/');
-        
-        if (minusSign !== null) { sums[i] = '-' + sums[i]; }
-        sums[i] = deSignZero(sums[i]);
-    }
-    //console.log(sums.sort());
-    return sums.sort().reverse().join('+').replaceAll('^', '**').replaceAll('+-', '-') + SCOneFactors;
+        factors.sort();
 
-    function deSignZero (str) { return str.replaceAll('-0', '0');}
+        for (let ii = 0; ii < divisors.length; ii++) {
+            divisors[ii] = '/' + divisors[ii];
+        }
+        divisors = divisors.join('');
+        factors = factors.join('*');
+        terms[i] = factors + divisors;
+        if (minusSign !== null ) { 
+            if (eval(terms[i].replaceAll('^','**')) !== 0) {
+                terms[i] = '-' + terms[i]; 
+            }
+        }
+    }
+    terms = terms.filter(n => n); // Remove empty elements, but should be unnecessary?
+    OneFactors = OneFactors.sort();
+    terms = terms.sort().reverse().join('+').replaceAll('+-', '-');
+    if (OneFactors.length > 0) { OneFactors = OneFactors.join('*'); }
+
+    let ordered = terms;
+    if (emptyTerm) {
+        ordered = ordered + '+' + OneFactors;
+    } else if (OneFactors.length > 0) {
+        ordered = (ordered + '*' + OneFactors);
+    }
+
+    return ordered.replaceAll('^', '**');
+}
+
+// 76^0 -> 67^0, 0^76 -> 0^67, 1^76 -> 1^67
+function orderExponent(expFactor) {
+    expFactor = String(expFactor);
+    split = expFactor.split('^');
+    base = split[0];
+    exp = split[1];
+
+    if (base.length > 1 && (exp == '0' || '1')) {
+        return base.split('').sort().reverse().join('')+ '^' + exp;
+    } else if ((base == '1' || '0') && exp.length > 1) {
+        return base + '^' + exp.split('').sort().reverse().join('');
+    }
+    return expFactor;
 }
 
 // Given a numbstring, return array of all permutations)

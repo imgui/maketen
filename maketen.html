@@ -10,11 +10,12 @@
   <body>
     <h1>Make Ten</h1>
     <div id="number">&nbsp;</div>
-
+    <p id="message">&nbsp;</p>
     <div id="dynamicColumn">
       <input id='input' autocomplete='off' onkeypress="solutionEntered(event)"></input>
+      <button id='revealButton' onclick='revealClicked(event)'>Reveal</button>
     </div>
-    <p id="message">&nbsp;</p>
+    
    
     <script src="main.js" defer></script>
   </body>

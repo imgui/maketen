@@ -15,6 +15,7 @@ h1 {
 
 #number {
     font-size: 80px;
+
 }
 
 .foundSolution {
@@ -45,4 +46,19 @@ input {
     background-color: hsl(0, 0%, 90%);
 
     margin-top: 10px;
+}
+
+.revealedSolution {
+    height: 50px;
+    line-height: 50px;
+    font-size: 40px;
+    background-color: hsl(0, 100%, 90%);
+
+    margin-top: 10px;
+}
+
+#revealButton {
+    margin-top: 50px;
+    padding: 5px;
+    font-size: 20px;
 }
