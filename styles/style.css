@@ -2,10 +2,42 @@
 
 html {
     font-family: sans-serif;
-    width: 200px;
-    margin-left: auto;
-    margin-right: auto;
     text-align: center;
+    height: 100%;
+}
+
+#top {
+    position: fixed;
+    
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    height: 100px;
+}
+
+#scrollable {
+    position: fixed;
+    margin: 0 auto;
+    top: 170px;
+    bottom: 320px;
+    left: 0px;
+    right: 0px;
+    width: 200px;
+    overflow-y: auto;
+    
+}
+
+#keyboard {
+    position: fixed;
+    margin: 0 auto;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    height: 320px;
+    width: 310px;
+    background-color: hsl(0, 0%, 97%);
+
+    border: 1px solid grey;
 }
 
 h1 {
@@ -58,7 +90,14 @@ input {
 }
 
 #giveUpButton {
-    margin-top: 20px;
     padding: 5px;
     font-size: 20px;
+}
+
+
+.key {
+    font-size: 30px;
+    width: 60px;
+    height:48px;
+    margin: 6px;
 }
