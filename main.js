@@ -36,7 +36,7 @@ inputField.onblur = function () {
 
 disableInvalidKeys();
 
-inputField.addEventListener("keydown", (event) => {
+inputField.addEventListener("keyup", (event) => {
   if (event.isComposing || event.keyCode === 229) {
     return;
   }
