@@ -16,6 +16,7 @@ while (remainingSolutions.length == 0) {
     remainingSolutions = findSolutions(number);
 }
 
+
 numberDisplay.textContent = number;
 inputField.focus();
 setTimeout(function(){
@@ -34,6 +35,13 @@ inputField.onblur = function () {
 };
 
 disableInvalidKeys();
+
+inputField.addEventListener("keydown", (event) => {
+  if (event.isComposing || event.keyCode === 229) {
+    return;
+  }
+  disableInvalidKeys();
+});
 
 function keyPressed(event) {
     const cursorPos = inputField.selectionEnd;
