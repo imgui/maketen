@@ -161,6 +161,12 @@ function guess() {
             dynamicColumn.appendChild(ele);
             inputField = document.getElementById('input');
             inputField.focus();
+            inputField.addEventListener("keyup", (event) => {
+              if (event.isComposing || event.keyCode === 229) {
+                return;
+              }
+              disableInvalidKeys();
+            });
 
             // Add messageField
             ele = document.createElement('div');
