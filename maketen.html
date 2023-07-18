@@ -3,50 +3,53 @@
   <head>
     <meta charset="utf-8">
     <title>Make Ten</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link href="styles/style.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="styles/style.css" rel="stylesheet">
   </head>
   
   <body>
     <div id="top">
       <h1>Make Ten</h1>
       <div id="number">&nbsp;</div>
-      <button id='giveUpButton' onclick='giveUp(event)' hidden='true'>Give up</button>
+      <button id='giveUpButton' onclick='giveUp(event)' disabled>Give up</button>
     </div>
 
     <div id="scrollable">
       <div id="dynamicColumn">
-        <input id='input' autocomplete='off' onkeypress="solutionEntered(event)"></input>
+        <input id='input' autocomplete='off' onkeypress="solutionEntered(event)" inputmode='none'/>
+        <div id='message' ></div>
       </div>
     </div>
 
     <div id="keyboard">
     <table>
       <tr>
-        <td><button class="key num">7</button></td>
-        <td><button class="key num">8</button</td>
-        <td><button class="key num">9</button</td>
-        <td><button class="key op">^</button</td>
-        <td><button class="key cmd">&#9003;</button></td> <!--back symbol-->
+        <td><button class="key num" id='7' onmouseup='keyPressed(event)'>7</button></td>
+        <td><button class="key num" id='8' onclick='keyPressed(event)'>8</button></td>
+        <td><button class="key num" id='9' onclick='keyPressed(event)'>9</button></td>
+        <td><button class="key op" id='^' onclick='keyPressed(event)'>^</button></td>
+        <td><button class="key cmd" id='back' onclick='keyPressed(event)'>&#9003;</button></td> <!--back symbol-->
       </tr>
       <tr>
-        <td><button class="key num">4</button></td>
-        <td><button class="key num">5</button></td>
-        <td><button class="key num">6</button></td>
-        <td><button class="key op">-</button></td>
+        <td><button class="key num" id='4' onclick='keyPressed(event)'>4</button></td>
+        <td><button class="key num" id='5' onclick='keyPressed(event)'>5</button></td>
+        <td><button class="key num" id='6' onclick='keyPressed(event)'>6</button></td>
+        <td><button class="key op" id='-' onclick='keyPressed(event)'>-</button></td>
+        <td>&nbsp;</td>
       </tr>
       <tr>
-        <td><button class="key num">1</button></td>
-        <td><button class="key num">2</button></td>
-        <td><button class="key num">3</button></td>
-        <td><button class="key op">+</button></td>
+        <td><button class="key num" id='1' onclick='keyPressed(event)'>1</button></td>
+        <td><button class="key num" id='2' onclick='keyPressed(event)'>2</button></td>
+        <td><button class="key num" id='3' onclick='keyPressed(event)'>3</button></td>
+        <td><button class="key op" id='+' onclick='keyPressed(event)'>+</button></td>
+        <td>&nbsp;</td>
       </tr>
       <tr>
         <td>&nbsp;</td>
-        <td><button class="key num">0</button></td>
-        <td><button class="key op">&#215;</button></td> <!--multiplication sign--> 
-        <td><button class="key op">&#247;</button></td> <!--division sign-->
-        <td><button class="key cmd">&#8594;</button></td> <!--enter arrow-->
+        <td><button class="key num" id='0' onclick='keyPressed(event)'>0</button></td>
+        <td><button class="key op" id='*' onclick='keyPressed(event)'>&#215;</button></td> <!--multiplication sign--> 
+        <td><button class="key op" id='/' onclick='keyPressed(event)'>&#247;</button></td> <!--division sign-->
+        <td><button class="key cmd" id='enter' onclick='keyPressed(event)'>&#8594;</button></td> <!--enter arrow-->
       </tr>
       
     </table>

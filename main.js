@@ -3,6 +3,9 @@ let inputField = document.getElementById('input');
 let messageField = document.getElementById('message');
 let dynamicColumn = document.getElementById('dynamicColumn');
 let giveUpButton = document.getElementById('giveUpButton');
+let keyboard = document.getElementById('keyboard');
+let numKeys = keyboard.getElementsByClassName('num');
+let backKey = document.getElementById('back');
 
 let number = '';
 let remainingSolutions = [];
@@ -18,20 +21,79 @@ inputField.focus();
 setTimeout(function(){
     const gameWon = remainingSolutions.length === 0;
     if (!gameWon) { // If game not won
-        giveUpButton.hidden = false; 
+        giveUpButton.disabled = false; 
     }
 }, 5*60*1000); // (ms) 5 minutes
 
 inputField.add
-
+// So it is always selected
 inputField.onblur = function () {
     setTimeout(function () {
         inputField.focus();
     })
 };
 
+disableInvalidKeys();
+
+function keyPressed(event) {
+    const cursorPos = inputField.selectionEnd;
+    const id = event.target.id;
+    let str = inputField.value;
+
+    messageField.textContent = '';
+
+    if (id === 'enter') { guess(); return; }
+    if (id === 'back') {
+        inputField.value = str.slice(0, cursorPos-1) + str.slice(cursorPos);
+        inputField.focus();
+        inputField.setSelectionRange(cursorPos-1, cursorPos-1);
+    } else {
+        inputField.value = str.slice(0, cursorPos) + event.target.id + str.slice(cursorPos);
+        inputField.focus();
+        inputField.setSelectionRange(cursorPos+1, cursorPos+1);
+    }
+
+    disableInvalidKeys();
+}
+
+
+function disableInvalidKeys() {
+    // Disable numkeys
+    for(let i = 0; i < numKeys.length; i++) {
+        numKeys[i].disabled = true;
+    }
+
+    // Get digits to enable
+    let enteredDigits = inputField.value.replace(/\D/g,'');
+    let remainingDigits = number;
+    for (let i = 0; i < enteredDigits.length; i++) {
+        remainingDigits = remainingDigits.replace(enteredDigits[i], '');
+    }
+
+    if (inputField.value.length == 0) {
+        backKey.disabled = true; //disable back key
+    } else {
+        backKey.disabled = false;
+    }
+
+    //Enable digits
+    for (let keyi = 0; keyi < numKeys.length; keyi++) {
+        for (let remi = 0; remi < remainingDigits.length; remi++) {
+            if (numKeys[keyi].id == remainingDigits[remi]) {
+                numKeys[keyi].disabled = false;
+            }
+        }
+    }
+    
+}
+
 function solutionEntered(event) {
     if (event.keyCode !== (13 ||  8)) { messageField.textContent = '\xA0'; return; } // 'Enter' or 'Backspace' key
+    guess();
+    
+}
+
+function guess() {
     let guess = orderExpression(inputField.value);
     let orderedCorrectGuesses = correctGuesses.map((ele) => orderExpression(ele));
     let result = 0;
@@ -55,6 +117,7 @@ function solutionEntered(event) {
         });
         correctGuesses.push(inputField.value.replaceAll(' ', ''));
 
+        
         // Remove dynamic elements
         while(dynamicColumn.hasChildNodes()) {
             dynamicColumn.removeChild(dynamicColumn.firstChild);
@@ -70,16 +133,34 @@ function solutionEntered(event) {
 
         // Add remaining guesses
         if (remainingSolutions.length === 0) {
+            // Add messageField
+            ele = document.createElement('div');
+            ele.setAttribute('id', 'message');
+            dynamicColumn.appendChild(ele);
+            messageField = document.getElementById('message');
+            
             messageField.textContent = 'All solutions found!';
+            giveUpButton.hidden = true;
+            keyboard.hidden = true;
+            
         } else {
             // Add field
             let ele = document.createElement('input');
             ele.setAttribute('id', 'input');
             ele.setAttribute('autocomplete', 'off');
             ele.setAttribute('onkeypress', 'solutionEntered(event)');
+            ele.setAttribute('inputmode', 'none');
             dynamicColumn.appendChild(ele);
             inputField = document.getElementById('input');
             inputField.focus();
+
+            // Add messageField
+            ele = document.createElement('div');
+            ele.setAttribute('id', 'message');
+            dynamicColumn.appendChild(ele);
+            messageField = document.getElementById('message');
+            
+            // So it is always selected
             inputField.onblur = function () {
                 setTimeout(function () {
                     inputField.focus();
@@ -95,6 +176,7 @@ function solutionEntered(event) {
     } else {
         messageField.textContent = 'Illegal guess';
     }
+    disableInvalidKeys();
 }
 
 function giveUp(event) {
