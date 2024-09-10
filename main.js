@@ -1,3 +1,6 @@
+//Bugs: 0100 gives 0*0*10
+// 0740 gives 7+4+0*0
+
 let numberDisplay = document.getElementById('number');
 let inputField = document.getElementById('input');
 let messageField = document.getElementById('message');
@@ -10,8 +13,15 @@ let backKey = document.getElementById('back');
 let number = '';
 let remainingSolutions = [];
 let correctGuesses = [];
+let goalNum = 10;
 
-while (remainingSolutions.length == 0) {
+// Stop double click zoom on iOS
+document.ondblclick = function(e) {
+    e.preventDefault();
+}
+
+// Generate numbers that have at least one solution and no zeros
+while (remainingSolutions.length == 0 || (number.includes('0'))) {
     number = String(Math.floor(Math.random()*10000)).padStart(4,0);
     remainingSolutions = findSolutions(number);
 }
@@ -24,7 +34,7 @@ setTimeout(function(){
     if (!gameWon) { // If game not won
         giveUpButton.disabled = false; 
     }
-}, 5*60*1000); // (ms) 5 minutes
+}, 2*60*1000); // (ms) 5 minutes 5*60*1000
 
 inputField.add
 // So it is always selected
@@ -114,11 +124,14 @@ function guess() {
         return;
     }
 
-    if (result === 10 && orderedCorrectGuesses.includes(guess)) {
+    if (result === goalNum && orderedCorrectGuesses.includes(guess)) {
         messageField.textContent = 'Too similar to a previous guess';
-    } else if (result !== 10) {
-        messageField.textContent = 'Does not make ten';
-    } else if (result === 10 && remainingSolutions.includes(guess)) {
+        const idx = orderedCorrectGuesses.indexOf(guess);
+        console.log('idx is: ' + idx);
+        
+    } else if (result !== goalNum) {
+        messageField.textContent = 'Does not make ' + goalNum;
+    } else if (result === goalNum && remainingSolutions.includes(guess)) {
         // Remove from remaining
         remainingSolutions = remainingSolutions.filter(function (value, index, arr) {
             return value !== guess;
@@ -147,7 +160,7 @@ function guess() {
             dynamicColumn.appendChild(ele);
             messageField = document.getElementById('message');
             
-            messageField.textContent = 'All solutions found!';
+            messageField.textContent = 'All solutions found. "Shrek""Tone" achieved.';
             giveUpButton.hidden = true;
             keyboard.hidden = true;
             
@@ -215,6 +228,7 @@ function giveUp(event) {
     }
 
     giveUpButton.hidden = true;
+    keyboard.hidden = true;
 }
 
 
@@ -244,7 +258,7 @@ function findSolutions(numString) {
 
             leadingZeros = /0\d/.test(expression);
             consecExponents = /\*\*\d\*\*/.test(expression);
-            if (eval(expression) === 10 && !leadingZeros && !consecExponents) {
+            if (eval(expression) === goalNum && !leadingZeros && !consecExponents) {
                 if (orderExpression(expression) == '9+19*1') {
                     console.log('expression 9+19*1: ' + expression);
                 }
